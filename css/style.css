@@ -1,0 +1,29 @@
+* {
+    position: relative;
+}
+
+div {
+
+}
+
+#leftPane {
+    border: 1px solid black;
+    width: 300px;
+    position: absolute;
+    left: 0;
+    padding: 3px;
+}
+
+#day {
+    border: 1px solid black;
+    margin-left: 313px;
+}
+
+#calendar {
+    margin: 3px;
+}
+
+#status {
+    border: 1px solid black;
+    margin: 3px;
+}
