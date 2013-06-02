@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="JavaScriptLibraryMappings">
+    <file url="file://$PROJECT_DIR$/client" libraries="{HTML5 / EcmaScript 5}" />
+    <file url="file://$PROJECT_DIR$/server" libraries="{Node.js v0.10.9 Core Modules}" />
+    <file url="PROJECT" libraries="{Node.js v0.10.9 Core Modules}" />
+  </component>
+</project>
+

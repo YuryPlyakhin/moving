@@ -2,10 +2,6 @@
     position: relative;
 }
 
-div {
-
-}
-
 #leftPane {
     border: 1px solid black;
     width: 300px;
@@ -26,4 +22,8 @@ div {
 #status {
     border: 1px solid black;
     margin: 3px;
+}
+
+.no-close .ui-dialog-titlebar-close {
+    display: none;
 }
