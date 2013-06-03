@@ -3,7 +3,6 @@ var isDirty = false;
 
 $(function () {
     $('#calendar').datepick({onSelect: showDate});
-    $('#calendar').datepick('setDate', new Date());
 
     $('#touchTypingCompleted').change(makeDirty);
     $('#pushUpsCompleted').change(makeDirty);
@@ -15,16 +14,23 @@ $(function () {
 
     $('#saveButton').click(saveData);
 
-    $("#saveInProgressDialog").dialog({ autoOpen: false, dialogClass: 'no-close', modal: true });
-    $("#errorDialog").dialog({ autoOpen: false, modal: true });
+    $('#saveInProgressDialog').dialog({ autoOpen: false, dialogClass: 'no-close', modal: true });
+    $('#loadInProgressDialog').dialog({ autoOpen: false, dialogClass: 'no-close', modal: true });
+    $('#errorDialog').dialog({ autoOpen: false, modal: true });
 
     socket.on('saveCompleted', saveCompleted);
+    socket.on('data', updateTable);
 
-    //load data from file
+    // This should be last statement, as it starts sending/receiving events and using DOM and jQuery objects.
+    $('#calendar').datepick('setDate', new Date());
 });
 
 function showDate(date) {
     console.log('The date chosen is ' + date);
+
+    //load data
+    $('#loadInProgressDialog').dialog('open');
+    socket.emit('loadData', {date: date});
 }
 
 function makeDirty() {
@@ -33,7 +39,7 @@ function makeDirty() {
 }
 
 function saveData(event) {
-    $("#saveInProgressDialog").dialog('open');
+    $('#saveInProgressDialog').dialog('open');
     $('#saveButton').attr('disabled', 'disabled');
     isDirty = false;
 
@@ -50,10 +56,24 @@ function saveData(event) {
 
 function saveCompleted(data) {
 
-    $("#saveInProgressDialog").dialog('close');
+    $('#saveInProgressDialog').dialog('close');
 
     if (data.err) {
-        $("#errorDialog").text(data.err);
-        $("#errorDialog").dialog('open');
+        $('#errorDialog').text(data.err);
+        $('#errorDialog').dialog('open');
     }
+}
+
+function updateTable(data) {
+
+    var values = data.values;
+
+    for (var key in values) {
+        if (!values.hasOwnProperty(key))
+            continue;
+
+        $('#' + key).attr('checked', values[key]);
+    }
+
+    $('#loadInProgressDialog').dialog('close');
 }
