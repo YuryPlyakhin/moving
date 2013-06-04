@@ -3,12 +3,13 @@
  * Date: 03.06.13
  * Time: 16:59
  */
+'use strict';
 
-var config = new function () {
-    this.host = '127.0.0.1';
-    this.port = '1337';
-    this.pathToClient = '..\\client\\';
-    this.dataFileName = 'moving.json';
-}
+var Config = {};
 
-module.exports = config;
+Config.host = '127.0.0.1';
+Config.port = '1337';
+Config.pathToClient = '..\\client\\';
+Config.dataFileName = 'moving.json';
+
+module.exports = Config;

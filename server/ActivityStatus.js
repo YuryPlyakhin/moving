@@ -3,51 +3,58 @@
  * Date: 03.06.13
  * Time: 17:13
  */
+'use strict';
 
 var path = require('path'),
     fs = require('fs'),
     util = require('./util'),
     config = require('./config');
 
-var ActivityStatus = new function () {
-    var data = null;
-    var dataFileName = path.join(util.getUserHome(), config.dataFileName);
+/** @constructor */
+function ActivityStatus() {
+    var data = null,
+        dataFileName = path.join(util.getUserHome(), config.dataFileName);
 
-    this.LoadFromFileSync = function () {
+    this.LoadFromFile = function(cb) {
 
         // check if file exists
-        var exists = fs.existsSync(dataFileName);
+        fs.exists(dataFileName, function(exists) {
+            if (exists) {
+                // read it to the object
+                fs.readFile(dataFileName, function(err, fileData) {
+                    if (err) {
+                        throw err;
+                    }
 
-        if (exists) {
-            // read it to the object
-            var fileData = fs.readFileSync(dataFileName);
-            data = JSON.parse(fileData);
-        }
-        else {
-            data = {};
-        }
-    };
-
-    this.SaveToFile = function () {
-        fs.writeFile(dataFileName, JSON.stringify(data), function (err) {
-            if (err) {
-                console.log(err);
+                    data = JSON.parse(fileData);
+                    cb();
+                });
+            } else {
+                data = {};
+                cb();
             }
-            else {
-                console.log('data saved');
-            }
-
-            socket.emit('saveCompleted', {err: err});
         });
     };
 
-    this.updateData = function (update) {
+    this.SaveToFile = function(cb) {
+        fs.writeFile(dataFileName, JSON.stringify(data), function(err) {
+            if (err) {
+                console.log(err);
+            } else {
+                console.log('data saved');
+            }
+
+            cb(err);
+        });
+    };
+
+    this.updateData = function(update) {
         data[update.date] = update.fields;
     };
 
-    this.getDataForDate = function (date) {
+    this.getDataForDate = function(date) {
         return data[date];
-    }
-};
+    };
+}
 
-module.exports = ActivityStatus;
+module.exports = new ActivityStatus();

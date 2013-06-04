@@ -3,6 +3,7 @@
  * Date: 02.06.13
  * Time: 10:35
  */
+'use strict';
 
 var http = require('http'),
     url = require('url'),
@@ -11,47 +12,54 @@ var http = require('http'),
     socketIo = require('socket.io'),
     activityStatus = require('./ActivityStatus'),
     config = require('./config'),
-    mediaType = require('./mediatype');
+    util = require('./util');
 
-var errorResponse = function (res, err) {
+var errorResponse = function(res, err) {
     console.log(err);
-    res.writeHead(500, {'Content-Type': 'text/plain'});
+    res.writeHead(util.httpStatusCodes.InternalServerError,
+        {'Content-Type': 'text/plain'});
     res.end(err + '\n');
 };
 
-var socket = null;
+var httpServer = http.createServer(function(req, res) {
 
-var httpServer = http.createServer(function (req, res) {
+    /*jslint nomen: true*/
+    var reqPath = url.parse(req.url).pathname,
+        fullPath = path.join(__dirname, config.pathToClient);
+    /*jslint nomen: false*/
 
-    var reqPath = url.parse(req.url).pathname;
     console.log(reqPath);
 
-    if (reqPath === '/') {
+    if ('/' === reqPath) {
         reqPath += 'index.html';
     }
 
-    var fullPath = path.join(__dirname, config.pathToClient);
     fullPath = path.join(fullPath, reqPath);
 
-    fs.exists(fullPath, function (exists) {
+    fs.exists(fullPath, function(exists) {
         if (!exists) {
-            res.writeHead(404, {'Content-Type': 'text/plain'});
-            return res.end('404 Not Found\n');
+            res.writeHead(util.httpStatusCodes.NotFound,
+                {'Content-Type': 'text/plain'});
+            res.end('404 Not Found\n');
+            return;
         }
 
-        fs.readFile(fullPath, function (err, file) {
+        fs.readFile(fullPath, function(err, file) {
             if (err) {
-                return errorResponse(res, err);
+                errorResponse(res, err);
+                return;
             }
 
-            var extension = path.extname(fullPath);
-            var contentType = mediaType.getByExt(extension);
+            var extension = path.extname(fullPath),
+                contentType = util.extToMediaType[extension];
 
             if (!contentType) {
-                return errorResponse(res, 'Unknown extension: ' + extension);
+                errorResponse(res, 'Unknown extension: ' + extension);
+                return;
             }
 
-            res.writeHead(200, {'Content-Type': contentType});
+            res.writeHead(util.httpStatusCodes.OK,
+                {'Content-Type': contentType});
             res.end(file);
         });
     });
@@ -59,20 +67,22 @@ var httpServer = http.createServer(function (req, res) {
 
 var io = socketIo.listen(httpServer);
 
-activityStatus.LoadFromFileSync();
-httpServer.listen(config.port, config.host);
+io.sockets.on('connection', function(socket) {
 
-io.sockets.on('connection', function (newSocket) {
-    socket = newSocket;
-
-    socket.on('saveData', function (data) {
+    socket.on('saveData', function(data) {
         activityStatus.updateData(data);
-        activityStatus.SaveToFile();
+        activityStatus.SaveToFile(function(err) {
+            socket.emit('saveCompleted', {err: err});
+        });
     });
 
-    socket.on('loadData', function (data) {
+    socket.on('loadData', function(data) {
         socket.emit('data', {values: activityStatus.getDataForDate(data.date)});
     });
 });
 
-console.log('Server running at http://' + config.host + ':' + config.port + '/');
+activityStatus.LoadFromFile(function() {
+    httpServer.listen(config.port, config.host);
+    console.log('Server running at http://' + config.host + ':' + config.port +
+        '/');
+});

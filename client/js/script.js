@@ -1,29 +1,9 @@
+/*global io:false, $:false */
+
+'use strict';
+
 var socket = io.connect('http://127.0.0.1:1337');
 var isDirty = false;
-
-$(function () {
-    $('#calendar').datepick({onSelect: showDate});
-
-    $('#touchTypingCompleted').change(makeDirty);
-    $('#pushUpsCompleted').change(makeDirty);
-    $('#squatCompleted').change(makeDirty);
-    $('#middlePressCompleted').change(makeDirty);
-    $('#hyperextensionCompleted').change(makeDirty);
-    $('#eveningTeethCleaningCompleted').change(makeDirty);
-    $('#sleepCompleted').change(makeDirty);
-
-    $('#saveButton').click(saveData);
-
-    $('#saveInProgressDialog').dialog({ autoOpen: false, dialogClass: 'no-close', modal: true });
-    $('#loadInProgressDialog').dialog({ autoOpen: false, dialogClass: 'no-close', modal: true });
-    $('#errorDialog').dialog({ autoOpen: false, modal: true });
-
-    socket.on('saveCompleted', saveCompleted);
-    socket.on('data', updateTable);
-
-    // This should be last statement, as it starts sending/receiving events and using DOM and jQuery objects.
-    $('#calendar').datepick('setDate', new Date());
-});
 
 function showDate(date) {
     console.log('The date chosen is ' + date);
@@ -38,15 +18,15 @@ function makeDirty() {
     $('#saveButton').removeAttr('disabled');
 }
 
-function saveData(event) {
+function saveData() {
+    var date = $('#calendar').datepick('getDate'),
+        completedObject = {};
+
     $('#saveInProgressDialog').dialog('open');
     $('#saveButton').attr('disabled', 'disabled');
     isDirty = false;
 
-    var date = $('#calendar').datepick('getDate');
-    var completedObject = {};
-
-    $('input.data').each(function (index) {
+    $('input.data').each(function() {
         completedObject[$(this).attr('id')] = $(this).prop('checked');
     });
 
@@ -59,21 +39,54 @@ function saveCompleted(data) {
     $('#saveInProgressDialog').dialog('close');
 
     if (data.err) {
-        $('#errorDialog').text(data.err);
-        $('#errorDialog').dialog('open');
+        var $errorDialog = $('#errorDialog');
+        $errorDialog.text(data.err);
+        $errorDialog.dialog('open');
     }
 }
 
 function updateTable(data) {
 
-    var values = data.values;
+    var values = data.values,
+        key;
 
-    for (var key in values) {
-        if (!values.hasOwnProperty(key))
-            continue;
-
-        $('#' + key).attr('checked', values[key]);
+    for (key in values) {
+        if (values.hasOwnProperty(key)) {
+            $('#' + key).attr('checked', values[key]);
+        }
     }
 
     $('#loadInProgressDialog').dialog('close');
 }
+
+$(function() {
+    var $calendar = $('#calendar');
+    $calendar.datepick({onSelect: showDate});
+
+    $('#touchTypingCompleted').change(makeDirty);
+    $('#pushUpsCompleted').change(makeDirty);
+    $('#squatCompleted').change(makeDirty);
+    $('#middlePressCompleted').change(makeDirty);
+    $('#hyperextensionCompleted').change(makeDirty);
+    $('#eveningTeethCleaningCompleted').change(makeDirty);
+    $('#sleepCompleted').change(makeDirty);
+
+    $('#saveButton').click(saveData);
+
+    $('#saveInProgressDialog').dialog({ autoOpen: false,
+        dialogClass: 'no-close',
+        modal: true });
+
+    $('#loadInProgressDialog').dialog({ autoOpen: false,
+        dialogClass: 'no-close',
+        modal: true });
+
+    $('#errorDialog').dialog({ autoOpen: false, modal: true });
+
+    socket.on('saveCompleted', saveCompleted);
+    socket.on('data', updateTable);
+
+    // This should be last statement,
+    // as it starts sending/receiving events and using DOM and jQuery objects.
+    $calendar.datepick('setDate', new Date());
+});

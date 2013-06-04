@@ -3,12 +3,27 @@
  * Date: 03.06.13
  * Time: 17:18
  */
+'use strict';
 
-var util = new function () {
+var Util = {};
 
-    this.getUserHome = function () {
-        return process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
-    };
+Util.getUserHome = function() {
+    var isWin32 = ('win32' === process.platform);
+    return process.env[isWin32 ? 'USERPROFILE' : 'HOME'];
 };
 
-module.exports = util;
+Util.extToMediaType = {
+    '.txt': 'text/plain',
+    '.html': 'text/html',
+    '.css': 'text/css',
+    '.js': 'application/javascript'
+};
+
+//noinspection MagicNumberJS
+Util.httpStatusCodes = {
+    'OK': 200,
+    'NotFound': 404,
+    'InternalServerError': 500
+};
+
+module.exports = Util;
