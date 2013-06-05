@@ -45,7 +45,7 @@
     <option validthis="false" />
     <option browser="true" />
     <option couch="false" />
-    <option devel="false" />
+    <option devel="true" />
     <option dojo="false" />
     <option jquery="true" />
     <option mootools="false" />

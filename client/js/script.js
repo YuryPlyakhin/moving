@@ -108,10 +108,20 @@ function handleMonthChange(year, month) {
     $('#calendar').datepick('setDate', new Date(year, month - 1, 1));
 }
 
+function handlePreSelection() {
+    if (isDirty) {
+        alert('Save before picking another date!');
+        return false;
+    }
+
+    return true;
+}
+
 $(function() {
     var $calendar = $('#calendar');
     $calendar.datepick({onSelect: showDate,
-        onChangeMonthYear: handleMonthChange});
+        onChangeMonthYear: handleMonthChange,
+        onPreSelect: handlePreSelection});
 
     $('#touchTypingCompleted').change(makeDirty);
     $('#pushUpsCompleted').change(makeDirty);

@@ -51,6 +51,8 @@
             onShow: null, // Callback just before a datepicker is shown
             onChangeMonthYear: null, // Callback when a new month/year is selected
             onSelect: null, // Callback when a date is selected
+            // Yury: Added callback for possibility to cancel selection
+            onPreSelect: null, // Callback before a date is selected, may cancel selection
             onClose: null, // Callback when a datepicker is closed
             altField: null, // Alternate field to update in synch with the datepicker
             altFormat: null, // Date format for alternate field, defaults to dateFormat
@@ -1842,7 +1844,17 @@
                         removeClass(inst.options.renderer.highlightedClass);
                 }).
                 click(function () {
-                    self._selectDatePlugin(target, this);
+                    // Yury: if false is returned for onPreSelect callback,
+                    // selection will not be done.
+                    var isSelect = true;
+                    if ($.isFunction(inst.options.onPreSelect) && !inst.inPreSelect) {
+                        inst.inPreSelect = true; // Prevent endless loops
+                        isSelect = inst.options.onPreSelect.apply(target);
+                        inst.inPreSelect = false;
+                    }
+                    if (isSelect) {
+                        self._selectDatePlugin(target, this);
+                    }
                 }).end().
                 find('select.' + this._monthYearClass + ':not(.' + this._anyYearClass + ')').
                 change(function () {
