@@ -34,6 +34,17 @@ function saveData() {
     socket.emit('saveData', {date: date, fields: completedObject});
 }
 
+function getMonthData() {
+    var currentDate = new Date($('#calendar').datepick('getDate')),
+        currentMonth = currentDate.getMonth() + 1,
+        currentYear = currentDate.getFullYear(),
+        daysInMonth = $.datepick.daysInMonth(currentYear, currentMonth);
+
+    $('#loadInProgressDialog').dialog('open');
+    socket.emit('getMonthData', {year: currentYear, month: currentMonth,
+        maxDay: daysInMonth});
+}
+
 function saveCompleted(data) {
 
     $('#saveInProgressDialog').dialog('close');
@@ -42,6 +53,8 @@ function saveCompleted(data) {
         var $errorDialog = $('#errorDialog');
         $errorDialog.text(data.err);
         $errorDialog.dialog('open');
+    } else {
+        getMonthData();
     }
 }
 
@@ -63,11 +76,42 @@ function updateTable(data) {
     }
 
     $('#loadInProgressDialog').dialog('close');
+    getMonthData();
+}
+
+function colorCalendar(data) {
+
+    var date = new Date($('#calendar').datepick('getDate')),
+        year = date.getFullYear(),
+        month = date.getMonth() + 1,
+        daysInMonth = $.datepick.daysInMonth(year, month),
+        i,
+        currentDate,
+        newClass,
+        oldClass,
+        $day;
+
+    for (i = 1; i <= daysInMonth; i += 1) {
+        currentDate = $.datepick.newDate(year, month, i);
+        newClass = data[i] ? 'datepick-done' : 'datepick-notDone';
+        oldClass = data[i] ? 'datepick-notDone' : 'datepick-done';
+
+        $day = $('.dp' + currentDate.getTime());
+        $day.addClass(newClass);
+        $day.removeClass(oldClass);
+    }
+
+    $('#loadInProgressDialog').dialog('close');
+}
+
+function handleMonthChange(year, month) {
+    $('#calendar').datepick('setDate', new Date(year, month - 1, 1));
 }
 
 $(function() {
     var $calendar = $('#calendar');
-    $calendar.datepick({onSelect: showDate});
+    $calendar.datepick({onSelect: showDate,
+        onChangeMonthYear: handleMonthChange});
 
     $('#touchTypingCompleted').change(makeDirty);
     $('#pushUpsCompleted').change(makeDirty);
@@ -91,6 +135,7 @@ $(function() {
 
     socket.on('saveCompleted', saveCompleted);
     socket.on('data', updateTable);
+    socket.on('monthData', colorCalendar);
 
     // This should be last statement,
     // as it starts sending/receiving events and using DOM and jQuery objects.

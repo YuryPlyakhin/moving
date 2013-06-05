@@ -27,3 +27,11 @@
 .no-close .ui-dialog-titlebar-close {
     display: none;
 }
+
+.datepick-month td .datepick-done {
+    background-color: green;
+}
+
+.datepick-month td .datepick-notDone {
+    background-color: red;
+}

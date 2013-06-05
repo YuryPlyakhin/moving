@@ -79,6 +79,12 @@ io.sockets.on('connection', function(socket) {
     socket.on('loadData', function(data) {
         socket.emit('data', {values: activityStatus.getDataForDate(data.date)});
     });
+
+    socket.on('getMonthData', function(data) {
+        var monthData = activityStatus.getMonthData(data.year, data.month,
+            data.maxDay);
+        socket.emit('monthData', monthData);
+    });
 });
 
 activityStatus.LoadFromFile(function() {

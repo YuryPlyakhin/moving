@@ -13,7 +13,13 @@ var path = require('path'),
 /** @constructor */
 function ActivityStatus() {
     var data = null,
-        dataFileName = path.join(util.getUserHome(), config.dataFileName);
+        dataFileName = path.join(util.getUserHome(), config.dataFileName),
+        generateDateKey = function(year, month, day) {
+            var monthStr = 10 > month ? '0' + month : month,
+                dayStr = 10 > day ? '0' + day : day;
+
+            return year + '-' + monthStr + '-' + dayStr + 'T05:00:00.000Z';
+        };
 
     this.LoadFromFile = function(cb) {
 
@@ -54,6 +60,34 @@ function ActivityStatus() {
 
     this.getDataForDate = function(date) {
         return data[date];
+    };
+
+    this.getMonthData = function(year, month, maxDay) {
+        var monthData = {},
+            i,
+            key,
+            date,
+            isDone,
+            activity;
+
+        for (i = 1; i <= maxDay; i += 1) {
+            key = generateDateKey(year, month, i);
+            date = data[key];
+            isDone = false;
+
+            if (date) {
+                isDone = true;
+                for (activity in date) {
+                    if (date.hasOwnProperty(activity) && !date[activity]) {
+                        isDone = false;
+                        break;
+                    }
+                }
+            }
+            monthData[i] = isDone;
+        }
+
+        return monthData;
     };
 }
 
