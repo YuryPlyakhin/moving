@@ -50,9 +50,15 @@ function updateTable(data) {
     var values = data.values,
         key;
 
-    for (key in values) {
-        if (values.hasOwnProperty(key)) {
-            $('#' + key).attr('checked', values[key]);
+    if (!values || 0 === Object.keys(values).length) {
+        $('input.data').each(function() {
+            $(this)[0].checked = false;
+        });
+    } else {
+        for (key in values) {
+            if (values.hasOwnProperty(key)) {
+                $('#' + key)[0].checked = values[key];
+            }
         }
     }
 
