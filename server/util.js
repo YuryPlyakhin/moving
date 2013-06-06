@@ -16,7 +16,8 @@ Util.extToMediaType = {
     '.txt': 'text/plain',
     '.html': 'text/html',
     '.css': 'text/css',
-    '.js': 'application/javascript'
+    '.js': 'application/javascript',
+    '.json': 'application/json'
 };
 
 //noinspection MagicNumberJS

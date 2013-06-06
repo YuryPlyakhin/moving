@@ -1,0 +1,44 @@
+[
+    {
+        "id": "touchTypingActivity",
+        "time": "30min",
+        "completed": false
+    },
+    {
+        "id": "pushUpsActivity",
+        "sets": "3",
+        "amount": "30",
+        "weight": "0",
+        "completed": false
+    },
+    {
+        "id": "squatActivity",
+        "sets": "3",
+        "amount": "30",
+        "weight": "0",
+        "completed": false
+    },
+    {
+        "id": "middlePressActivity",
+        "sets": "3",
+        "amount": "30",
+        "weight": "0",
+        "completed": false
+    },
+    {
+        "id": "hyperextensionActivity",
+        "sets": "1",
+        "amount": "50",
+        "weight": "0",
+        "completed": false
+    },
+    {
+        "id": "eveningTeethCleaningActivity",
+        "completed": false
+    },
+    {
+        "id": "sleepActivity",
+        "time": "22:00",
+        "completed": false
+    }
+]

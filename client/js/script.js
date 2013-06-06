@@ -4,6 +4,9 @@
 
 var socket = io.connect('http://127.0.0.1:1337');
 var isDirty = false;
+var activitiesInfo = {};
+var defaultActivities = {};
+var currentActivities = {};
 
 function showDate(date) {
     console.log('The date chosen is ' + date);
@@ -13,6 +16,7 @@ function showDate(date) {
     socket.emit('loadData', {date: date});
 }
 
+//noinspection JSHint
 function makeDirty() {
     isDirty = true;
     $('#saveButton').removeAttr('disabled');
@@ -20,18 +24,20 @@ function makeDirty() {
 
 function saveData() {
     var date = $('#calendar').datepick('getDate'),
-        completedObject = {};
+        length = currentActivities.length,
+        i,
+        $input;
 
     $('#saveInProgressDialog').dialog('open');
     $('#saveButton').attr('disabled', 'disabled');
     isDirty = false;
 
-    $('input.data').each(function() {
-        completedObject[$(this).attr('id')] = $(this).prop('checked');
-    });
+    for (i = 0; i < length; i += 1) {
+        $input = $('#' + currentActivities[i].id);
+        currentActivities[i].completed = $input.prop('checked');
+    }
 
-    console.log(completedObject);
-    socket.emit('saveData', {date: date, fields: completedObject});
+    socket.emit('saveData', {date: date, fields: currentActivities});
 }
 
 function getMonthData() {
@@ -58,22 +64,106 @@ function saveCompleted(data) {
     }
 }
 
-function updateTable(data) {
+function clearTable(table) {
+    var count = table.rows.length,
+        i;
 
-    var values = data.values,
-        key;
+    for (i = count - 1; i > 0; i -= 1) {
+        table.deleteRow(i);
+    }
+}
 
-    if (!values || 0 === Object.keys(values).length) {
-        $('input.data').each(function() {
-            $(this)[0].checked = false;
-        });
-    } else {
-        for (key in values) {
-            if (values.hasOwnProperty(key)) {
-                $('#' + key)[0].checked = values[key];
-            }
+function generateTable() {
+    var length = currentActivities.length,
+        i,
+        activity,
+        activityInfo,
+        tr,
+        td,
+        input,
+        table = document.getElementById('activitiesTable');
+
+    clearTable(table);
+
+    // Add new rows
+    for (i = 0; i < length; i += 1) {
+        activity = currentActivities[i];
+        activityInfo = activitiesInfo[activity.id];
+
+        // Create row
+        tr = document.createElement('tr');
+
+        // Create name cell
+        td = document.createElement('td');
+        td.innerText = activityInfo.Name;
+        tr.appendChild(td);
+
+        // Create details cell
+        td = document.createElement('td');
+        switch (activityInfo.Type) {
+        case 'Timer':
+            td.innerText = activity.time;
+            break;
+        case 'Set':
+            td.innerText = activity.sets + '*' + activity.amount +
+                ' (' + activity.weight + 'kg)';
+            break;
+        case 'Once':
+            break;
+        case 'Time':
+            td.innerText = activity.time;
+            break;
+        default:
+            console.error('Unknown activity type value: ' + activityInfo.Type);
+        }
+        tr.appendChild(td);
+
+        // Create completion cell
+        td = document.createElement('td');
+        input = document.createElement('input');
+        input.id = activity.id;
+        input.classList.add('data');
+        input.type = 'checkbox';
+        input.checked = activity.completed;
+        input.setAttribute('onchange', 'makeDirty();');
+        td.appendChild(input);
+        tr.appendChild(td);
+
+        table.appendChild(tr);
+    }
+}
+
+// http://james.padolsey.com/javascript/deep-copying-of-objects-and-arrays/
+function deepCopy(obj) {
+    var copy = obj,
+        key,
+        isArray;
+
+    if (obj && typeof obj === 'object') {
+        isArray = Object.prototype.toString.call(obj) === '[object Array]';
+        copy = isArray ? [] : {};
+
+        //noinspection JSHint,JSLint
+        for (key in obj) {
+            //noinspection JSUnfilteredForInLoop
+            copy[key] = deepCopy(obj[key]);
         }
     }
+
+    return copy;
+}
+
+function updateTable(data) {
+
+    var values = data.values;
+
+    if (!values || 0 === Object.keys(values).length) {
+        currentActivities = deepCopy(defaultActivities);
+    } else {
+        currentActivities = deepCopy(values);
+    }
+
+    generateTable();
 
     $('#loadInProgressDialog').dialog('close');
     getMonthData();
@@ -123,14 +213,6 @@ $(function() {
         onChangeMonthYear: handleMonthChange,
         onPreSelect: handlePreSelection});
 
-    $('#touchTypingCompleted').change(makeDirty);
-    $('#pushUpsCompleted').change(makeDirty);
-    $('#squatCompleted').change(makeDirty);
-    $('#middlePressCompleted').change(makeDirty);
-    $('#hyperextensionCompleted').change(makeDirty);
-    $('#eveningTeethCleaningCompleted').change(makeDirty);
-    $('#sleepCompleted').change(makeDirty);
-
     $('#saveButton').click(saveData);
 
     $('#saveInProgressDialog').dialog({ autoOpen: false,
@@ -147,7 +229,18 @@ $(function() {
     socket.on('data', updateTable);
     socket.on('monthData', colorCalendar);
 
-    // This should be last statement,
-    // as it starts sending/receiving events and using DOM and jQuery objects.
-    $calendar.datepick('setDate', new Date());
+    // load activities
+    $.getJSON('js/activities.json', function(newActivities) {
+        activitiesInfo = newActivities;
+
+        $.getJSON('js/defaultActivities.json', function(newDefault) {
+            defaultActivities = newDefault;
+
+            // This should be last statement,
+            // as it starts sending/receiving events and using DOM
+            // and jQuery objects.
+            $calendar.datepick('setDate', new Date());
+
+        });
+    });
 });

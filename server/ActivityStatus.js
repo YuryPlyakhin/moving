@@ -68,7 +68,8 @@ function ActivityStatus() {
             key,
             date,
             isDone,
-            activity;
+            j,
+            length;
 
         for (i = 1; i <= maxDay; i += 1) {
             key = generateDateKey(year, month, i);
@@ -77,8 +78,10 @@ function ActivityStatus() {
 
             if (date) {
                 isDone = true;
-                for (activity in date) {
-                    if (date.hasOwnProperty(activity) && !date[activity]) {
+
+                length = date.length;
+                for (j = 0; j < length; j += 1) {
+                    if (!date[j].completed) {
                         isDone = false;
                         break;
                     }

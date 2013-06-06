@@ -1,0 +1,30 @@
+{
+    "touchTypingActivity": {
+        "Name": "Touch Typing",
+        "Type": "Timer"
+    },
+    "pushUpsActivity": {
+        "Name": "Push-ups",
+        "Type": "Set"
+    },
+    "squatActivity": {
+        "Name": "Squat",
+        "Type": "Set"
+    },
+    "middlePressActivity": {
+        "Name": "Middle press",
+        "Type": "Set"
+    },
+    "hyperextensionActivity": {
+        "Name": "Hyperextension",
+        "Type": "Set"
+    },
+    "eveningTeethCleaningActivity": {
+        "Name": "Evening teeth cleaning",
+        "Type": "Once"
+    },
+    "sleepActivity": {
+        "Name": "Sleep",
+        "Type": "Time"
+    }
+}
